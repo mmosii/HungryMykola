@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">HungryMykola</string>
+    <string name="choose_language">Choose language</string>
+    <string name="english">English</string>
+    <string name="ukrainian">Українська</string>
+    <string name="settings">Налаштування</string>
+    <string name="change_language">Змінити мову</string>
+    <string name="welcome_text">Welcome to HungryMykola!</string>
+    <string name="section_1">Меню</string>
+    <string name="section_2">Список продуктів</string>
+    <string name="section_3">Додати нову страву</string>
+    <string name="back">Назад</string>
+    <string name="setting_menu_title">Налаштування</string>
+    <string name="back_button">Назад</string>
+    <string name="dish_name">Назва страви</string>
+    <string name="dish_description">Опис страви</string>
+    <string name="dish_price">Ціна страви</string>
+    <string name="choose_day">Оберіть день</string>
+</resources>
