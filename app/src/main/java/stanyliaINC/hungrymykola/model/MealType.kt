@@ -1,0 +1,25 @@
+package stanyliaINC.hungrymykola.model
+
+import android.content.Context
+import stanyliaINC.hungrymykola.R
+
+enum class MealType {
+    BREAKFAST,
+    SNACK,
+    LUNCH,
+    DINNER;
+
+    fun getLocalizedDishName(context: Context): String {
+        return when (this) {
+            BREAKFAST -> context.getString(R.string.dish_name_breakfast)
+            LUNCH -> context.getString(R.string.dish_name_lunch)
+            DINNER -> context.getString(R.string.dish_name_dinner)
+            SNACK -> context.getString(R.string.dish_name_snack)
+        }
+    }
+    companion object {
+        fun fromLocalizedName(context: Context, localizedName: String): MealType? {
+            return entries.find { it.getLocalizedDishName(context) == localizedName }
+        }
+    }
+}

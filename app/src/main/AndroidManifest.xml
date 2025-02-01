@@ -25,18 +25,32 @@
         </activity>
         <activity
             android:name=".activity.LanguageSelectionActivity"
+            android:screenOrientation="portrait"
             android:exported="true">
         </activity>
         <activity
             android:name=".activity.SettingsActivity"
+            android:screenOrientation="portrait"
             android:exported="true">
         </activity>
         <activity
             android:name=".activity.MenuActivity"
+            android:screenOrientation="portrait"
             android:exported="true">
         </activity>
         <activity
             android:name=".activity.DishDetailsActivity"
+            android:screenOrientation="portrait"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".activity.AddingDishActivity"
+            android:screenOrientation="portrait"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".activity.AddNewProductActivity"
+            android:screenOrientation="portrait"
             android:exported="true">
         </activity>
     </application>

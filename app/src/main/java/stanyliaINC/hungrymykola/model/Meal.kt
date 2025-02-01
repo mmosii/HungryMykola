@@ -1,6 +1,13 @@
 package stanyliaINC.hungrymykola.model
 
+import androidx.room.Entity
+
+@Entity(
+    tableName = "meals",
+    primaryKeys = ["date", "type"]
+)
 data class Meal(
-    val name: String,
-    val dishes: List<Dish>
+    val type: MealType,
+    val dishes: List<String>,
+    val date: String
 )

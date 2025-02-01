@@ -5,9 +5,11 @@ import java.util.*
 object LocaleManager {
     private const val LANGUAGE_KEY = "language_key"
 
-    fun setLocale(context: Context, language: String) {
-        saveLanguage(context, language)
-        updateResources(context, language)
+    fun setLocale(context: Context, language: String?) {
+        if (language != null) {
+            saveLanguage(context, language)
+            updateResources(context, language)
+        }
     }
 
     fun getLanguage(context: Context): String? {

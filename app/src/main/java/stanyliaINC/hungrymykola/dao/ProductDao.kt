@@ -14,7 +14,7 @@ interface ProductDao {
     @Query("SELECT * FROM products")
     suspend fun getAllProducts(): List<Product>
 
-    @Query("SELECT * FROM products WHERE name = :name")
+    @Query("SELECT * FROM products WHERE name = :name OR nameUk = :name")
     suspend fun getByName(name: String): List<Product>
 
     @Delete

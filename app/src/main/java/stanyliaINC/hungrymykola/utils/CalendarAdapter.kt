@@ -5,13 +5,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.launch
 import stanyliaINC.hungrymykola.R
+import stanyliaINC.hungrymykola.dao.MealDao
 import java.text.SimpleDateFormat
 import java.util.*
 
 class CalendarAdapter(
     private var days: List<Date>,
+    private val mealDao: MealDao,
+    private val lifecycleOwner: LifecycleOwner,
     private val onDayClick: (Date) -> Unit,
     context: Context
 ) : RecyclerView.Adapter<CalendarAdapter.DayViewHolder>() {
@@ -36,8 +43,18 @@ class CalendarAdapter(
 
         fun bind(date: Date) {
             val dateText = dateFormat.format(date)
-
             val dayOfWeekText = dayOfWeekFormat.format(date)
+
+            val dateString = SimpleDateFormat("dd.MM.yy", Locale.getDefault()).format(date)
+
+            lifecycleOwner.lifecycleScope.launch {
+                val mealsByDate = mealDao.getMealsByDate(dateString)
+                if (mealsByDate.isEmpty()) {
+                    itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.red))
+                } else {
+                    itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.green))
+                }
+            }
 
             dateTextView.text = "$dateText\n$dayOfWeekText"
             itemView.setOnClickListener { onDayClick(date) }

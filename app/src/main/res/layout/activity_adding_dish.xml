@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <GridLayout
+            android:id="@+id/mealTypeContainer"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:columnCount="4"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:rowCount="1"
+            android:gravity="center_horizontal" />
+
+        <EditText
+            android:id="@+id/dishNameEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/dish_name"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/servingsEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/servings"
+            android:inputType="number" />
+
+        <AutoCompleteTextView
+            android:id="@+id/productNameAutoCompleteTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/product_name" />
+
+        <EditText
+            android:id="@+id/productAmountEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/amount"
+            android:inputType="number" />
+
+        <Button
+            android:id="@+id/addProductButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/add_product" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/productRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:nestedScrollingEnabled="false" />
+
+        <EditText
+            android:id="@+id/recipeEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/recipe_optional"
+            android:inputType="textMultiLine" />
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/save_dish" />
+
+        <Button
+            android:id="@+id/addNewProductButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_new_product" />
+
+    </LinearLayout>
+</ScrollView>
