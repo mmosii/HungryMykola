@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import stanyliaINC.hungrymykola.model.Product
 
 @Dao
@@ -19,4 +20,7 @@ interface ProductDao {
 
     @Delete
     suspend fun delete(product: Product)
+
+    @Update
+    suspend fun update(product:Product)
 }

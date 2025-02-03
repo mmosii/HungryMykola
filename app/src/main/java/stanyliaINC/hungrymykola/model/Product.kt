@@ -11,7 +11,7 @@ data class Product(
     val amount: Int = 0,
     val unit: Units? = null,
     val url: String? = null,
-    val price: Double = 0.0) {
+    var price: Double = 0.0) {
 
     fun getLocalizedProduct(language: String?): String {
         return when (language) {

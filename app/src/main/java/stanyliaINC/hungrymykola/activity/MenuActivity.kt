@@ -26,6 +26,7 @@ import stanyliaINC.hungrymykola.dao.MealDao
 import stanyliaINC.hungrymykola.dao.ProductDao
 import stanyliaINC.hungrymykola.database.DatabaseProvider
 import stanyliaINC.hungrymykola.database.MealRepository
+import stanyliaINC.hungrymykola.database.ProductRepository
 import stanyliaINC.hungrymykola.databinding.ActivityMenuBinding
 import stanyliaINC.hungrymykola.model.Meal
 import stanyliaINC.hungrymykola.model.MealType
@@ -45,6 +46,7 @@ class MenuActivity : AppCompatActivity() {
     private lateinit var mealDao: MealDao
     private lateinit var mealRepository: MealRepository
     private lateinit var mealViewModel: MealViewModel
+    private lateinit var productRepository: ProductRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +57,7 @@ class MenuActivity : AppCompatActivity() {
         productDao = database.productDao()
         mealDao = database.mealDao()
         mealRepository = MealRepository(mealDao, dishDao, this@MenuActivity)
+        productRepository = ProductRepository(productDao)
 
         LocaleManager.setLocale(this, LocaleManager.getLanguage(this))
 
@@ -315,15 +318,14 @@ class MenuActivity : AppCompatActivity() {
                 val formattedTime = dateFormat.format(date)
                 mealViewModel = MealViewModel(mealRepository)
                 mealViewModel.insertMealsForDate(formattedTime)
-                updatePriceForProducts(productDao.getAllProducts())
+                updatePriceForProducts(productRepository.getAllProducts())
             }
         }
         Handler(Looper.getMainLooper()).postDelayed({
             updateCalendarView()
             Toast.makeText(this@MenuActivity, getString(R.string.menu_updated), Toast.LENGTH_SHORT)
                 .show()
-        }, 3000)
-
+        }, 4000)
     }
 
     private fun updatePriceForProducts(products: List<Product>) {
@@ -345,6 +347,10 @@ class MenuActivity : AppCompatActivity() {
                         val price = doc.select("meta[property=og:title]").attr("content")
                             .takeIf { it.contains("ціною від") }?.split("від")?.last()?.trim()
                         Log.d("a", " $price")
+                        if (price != null) {
+                            it.price = price.toDouble()
+                            productRepository.update(it)
+                        }
                     } else {
                         Log.d("Price update error", "Error while updating price for " + it.toString())
                     }

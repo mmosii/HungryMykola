@@ -70,4 +70,8 @@ class ProductRepository(private val productDao: ProductDao) {
     suspend fun getByName(name: String): List<Product> {
         return productDao.getByName(name)
     }
+
+    suspend fun update(product: Product) {
+        productDao.update(product)
+    }
 }
