@@ -67,7 +67,7 @@
         app:layout_constraintTop_toBottomOf="@id/updateMealsButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="4dp">
 
         <TextView
             android:id="@+id/selectedDate"
@@ -98,7 +98,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp">
+            android:padding="4dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -111,7 +111,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/breakfast"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textColor="@android:color/black" />
 
                 <TextView
@@ -120,7 +120,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="2"
                     android:text="@string/select_dish"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textColor="@android:color/holo_blue_dark"
                     android:clickable="true"
                     android:focusable="true" />
@@ -132,7 +132,7 @@
                     android:src="@android:drawable/ic_menu_edit"
                     android:contentDescription="@string/replace"
                     android:background="?android:attr/selectableItemBackground"
-                    android:layout_margin="8dp"
+                    android:layout_margin="4dp"
                     android:scaleType="centerInside"/>
             </LinearLayout>
 
@@ -146,29 +146,29 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/dish_name_lunch"
-                    android:textSize="16sp"
+                    android:text="@string/dish_name_sandwich"
+                    android:textSize="15sp"
                     android:textColor="@android:color/black" />
 
                 <TextView
-                    android:id="@+id/tvLunchDish"
+                    android:id="@+id/tvSandwichDish"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="2"
                     android:text="@string/select_dish"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textColor="@android:color/holo_blue_dark"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <ImageButton
-                    android:id="@+id/btnRemoveLunch"
+                    android:id="@+id/btnRemoveSandwich"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_menu_edit"
                     android:contentDescription="@string/replace"
                     android:background="?android:attr/selectableItemBackground"
-                    android:layout_margin="8dp" />
+                    android:layout_margin="4dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -181,29 +181,29 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/dish_name_dinner"
-                    android:textSize="16sp"
+                    android:text="@string/dish_name_lunch"
+                    android:textSize="15sp"
                     android:textColor="@android:color/black" />
 
                 <TextView
-                    android:id="@+id/tvDinnerDish"
+                    android:id="@+id/tvLunchDish"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="2"
                     android:text="@string/select_dish"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textColor="@android:color/holo_blue_dark"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <ImageButton
-                    android:id="@+id/btnRemoveDinner"
+                    android:id="@+id/btnRemoveLunch"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_menu_edit"
                     android:contentDescription="@string/replace"
                     android:background="?android:attr/selectableItemBackground"
-                    android:layout_margin="8dp" />
+                    android:layout_margin="4dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -217,7 +217,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/dish_name_snack"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textColor="@android:color/black" />
 
                 <TextView
@@ -226,7 +226,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="2"
                     android:text="@string/select_dish"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textColor="@android:color/holo_blue_dark"
                     android:clickable="true"
                     android:focusable="true" />
@@ -238,9 +238,45 @@
                     android:src="@android:drawable/ic_menu_edit"
                     android:contentDescription="@string/replace"
                     android:background="?android:attr/selectableItemBackground"
-                    android:layout_margin="8dp" />
+                    android:layout_margin="4dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingTop="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/dish_name_dinner"
+                    android:textSize="15sp"
+                    android:textColor="@android:color/black" />
+
+                <TextView
+                    android:id="@+id/tvDinnerDish"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:text="@string/select_dish"
+                    android:textSize="15sp"
+                    android:textColor="@android:color/holo_blue_dark"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <ImageButton
+                    android:id="@+id/btnRemoveDinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@android:drawable/ic_menu_edit"
+                    android:contentDescription="@string/replace"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_margin="4dp"/>
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

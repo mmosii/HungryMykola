@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
@@ -13,7 +14,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.jsoup.Jsoup
 import stanyliaINC.hungrymykola.R
 import stanyliaINC.hungrymykola.dao.DishDao
 import stanyliaINC.hungrymykola.dao.MealDao
@@ -23,7 +29,8 @@ import stanyliaINC.hungrymykola.database.MealRepository
 import stanyliaINC.hungrymykola.databinding.ActivityMenuBinding
 import stanyliaINC.hungrymykola.model.Meal
 import stanyliaINC.hungrymykola.model.MealType
-import stanyliaINC.hungrymykola.utils.CalendarAdapter
+import stanyliaINC.hungrymykola.model.Product
+import stanyliaINC.hungrymykola.utils.MenuCalendarAdapter
 import stanyliaINC.hungrymykola.viewmodel.MealViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -63,17 +70,19 @@ class MenuActivity : AppCompatActivity() {
 
     private fun updateCalendarView() {
         val dates = getDatesForPeriod().sorted()
-        val currentLocale = LocaleManager.getLanguage(this)?.let { Locale(it) } ?: Locale.getDefault()
+        val currentLocale =
+            LocaleManager.getLanguage(this)?.let { Locale(it) } ?: Locale.getDefault()
         val dateFormat = SimpleDateFormat("dd.MM.yy", currentLocale)
 
         lifecycleScope.launch {
             binding.recyclerView.layoutManager = GridLayoutManager(this@MenuActivity, 5)
 
-            binding.recyclerView.adapter = CalendarAdapter(dates, mealDao, this@MenuActivity, { selectedDate ->
-                lifecycleScope.launch {
-                    showMenuForDay(dateFormat.format(selectedDate), mealDao)
-                }
-            }, this@MenuActivity)
+            binding.recyclerView.adapter =
+                MenuCalendarAdapter(dates, mealDao, this@MenuActivity, { selectedDate ->
+                    lifecycleScope.launch {
+                        showMenuForDay(dateFormat.format(selectedDate), mealDao)
+                    }
+                }, this@MenuActivity)
         }
     }
 
@@ -83,8 +92,9 @@ class MenuActivity : AppCompatActivity() {
             Toast.makeText(this@MenuActivity, R.string.no_menu, Toast.LENGTH_SHORT).show()
         } else {
             val breakfastMeal = mealsByDate.first { meal -> meal.type == MealType.BREAKFAST }
-            val snackMeal = mealsByDate.first { meal -> meal.type == MealType.SNACK }
+            val sandwichMeal = mealsByDate.first { meal -> meal.type == MealType.SANDWICH }
             val lunchMeal = mealsByDate.first { meal -> meal.type == MealType.LUNCH }
+            val snackMeal = mealsByDate.first { meal -> meal.type == MealType.SNACK }
             val dinnerMeal = mealsByDate.first { meal -> meal.type == MealType.DINNER }
 
 
@@ -97,6 +107,18 @@ class MenuActivity : AppCompatActivity() {
             binding.tvBreakfastDish.setOnClickListener {
                 lifecycleScope.launch {
                     openDishDetails(binding.tvBreakfastDish.text.toString())
+                }
+            }
+
+            if (sandwichMeal.dishes.first() == "Dummy") {
+                binding.tvSandwichDish.text = sandwichMeal.dishes[1]
+            } else {
+                binding.tvSandwichDish.text = sandwichMeal.dishes.first()
+            }
+
+            binding.tvSandwichDish.setOnClickListener {
+                lifecycleScope.launch {
+                    openDishDetails(binding.tvSandwichDish.text.toString())
                 }
             }
 
@@ -174,15 +196,12 @@ class MenuActivity : AppCompatActivity() {
             binding.updateMealsButton,
             binding.cardViewSelectedDate,
             binding.cardView,
-            binding.tvSnackDish,
-            binding.tvLunchDish,
-            binding.tvDinnerDish,
-            binding.tvBreakfastDish,
             binding.btnRemoveBreakfast,
-            binding.btnRemoveDinner,
             binding.btnRemoveLunch,
             binding.btnRemoveDinner,
-            binding.btnRemoveSnack
+            binding.btnRemoveSnack,
+            binding.tvSandwichDish,
+            binding.btnRemoveSandwich
         )
         views.forEach { it.visibility = View.GONE }
 
@@ -190,21 +209,23 @@ class MenuActivity : AppCompatActivity() {
         binding.confirmMealButton.visibility = View.VISIBLE
         binding.cancelMealChange.visibility = View.VISIBLE
 
-        binding.confirmMealButton.setOnClickListener{
+        binding.confirmMealButton.setOnClickListener {
             val newText = binding.inputTextField.text
             view.text = newText
             binding.inputTextField.visibility = View.GONE
             binding.confirmMealButton.visibility = View.GONE
             binding.cancelMealChange.visibility = View.GONE
             views.forEach { it.visibility = View.VISIBLE }
-            val imm = this@MenuActivity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            val imm =
+                this@MenuActivity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(binding.inputTextField.windowToken, 0)
             lifecycleScope.launch {
                 mealDao.deleteMealByDateAndType(date, type.name)
                 mealDao.insert(Meal(type, listOf("Dummy", newText.toString()), date))
             }
+
         }
-        binding.cancelMealChange.setOnClickListener{
+        binding.cancelMealChange.setOnClickListener {
             binding.inputTextField.visibility = View.GONE
             binding.confirmMealButton.visibility = View.GONE
             binding.cancelMealChange.visibility = View.GONE
@@ -215,11 +236,14 @@ class MenuActivity : AppCompatActivity() {
     private suspend fun openDishDetails(dish: String) {
         val dishByName = dishDao.getDishByName(dish)
         if (dishByName == null) {
-            Toast.makeText(this@MenuActivity,
-                getString(R.string.no_dish_details), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this@MenuActivity,
+                getString(R.string.no_dish_details), Toast.LENGTH_SHORT
+            ).show()
         } else {
             val intent = Intent(this@MenuActivity, DishDetailsActivity::class.java)
-            intent.putExtra("DISH_NAME",
+            intent.putExtra(
+                "DISH_NAME",
                 dishByName.getLocalizedDishName(LocaleManager.getLanguage(this@MenuActivity))
             )
             intent.putExtra("DISH_SERVINGS", dishByName.servings)
@@ -260,7 +284,7 @@ class MenuActivity : AppCompatActivity() {
         }
     }
 
-    private fun unitMapper(unit: String) : String {
+    private fun unitMapper(unit: String): String {
         when (unit) {
             "g", "G", "г", "Г" -> return this@MenuActivity.getString(R.string.unit_g)
             "ml", "ML", "мл", "МЛ" -> return this@MenuActivity.getString(R.string.unit_ml)
@@ -284,19 +308,49 @@ class MenuActivity : AppCompatActivity() {
     private fun updateMealsForPeriod() {
         val dates = getDatesForPeriod().sorted()
         val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.getDefault())
-        Toast.makeText(this@MenuActivity, getString(R.string.updating_menu), Toast.LENGTH_SHORT).show()
+        Toast.makeText(this@MenuActivity, getString(R.string.updating_menu), Toast.LENGTH_SHORT)
+            .show()
         lifecycleScope.launch {
             dates.forEach { date ->
                 val formattedTime = dateFormat.format(date)
                 mealViewModel = MealViewModel(mealRepository)
                 mealViewModel.insertMealsForDate(formattedTime)
-
+                updatePriceForProducts(productDao.getAllProducts())
             }
         }
         Handler(Looper.getMainLooper()).postDelayed({
             updateCalendarView()
-            Toast.makeText(this@MenuActivity, getString(R.string.menu_updated), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@MenuActivity, getString(R.string.menu_updated), Toast.LENGTH_SHORT)
+                .show()
         }, 3000)
 
     }
+
+    private fun updatePriceForProducts(products: List<Product>) {
+        products.filter{prod -> prod.url.isNullOrEmpty()}.forEach {
+            CoroutineScope(Dispatchers.IO).launch {
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url(it.url!!)
+                    .addHeader(
+                        "User-Agent",
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+                    )
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val html = response.body?.string()
+                        val doc = Jsoup.parse(html!!)
+                        val price = doc.select("meta[property=og:title]").attr("content")
+                            .takeIf { it.contains("ціною від") }?.split("від")?.last()?.trim()
+                        Log.d("a", " $price")
+                    } else {
+                        Log.d("Price update error", "Error while updating price for " + it.toString())
+                    }
+                }
+            }
+        }
+    }
 }
+

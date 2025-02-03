@@ -26,8 +26,8 @@
     <string name="recipe">Рецепт: \n%s</string>
     <string name="possible_price">Приблизна ціна: \n%s грн</string>
     <string name="replace">заміна</string>
-    <string name="updating_menu">Оновлюю Меню!</string>
-    <string name="menu_updated">Меню Оновлено!</string>
+    <string name="updating_menu">Оновлюю меню!</string>
+    <string name="menu_updated">Меню оновлено!</string>
     <string name="unit_pcs">шт</string>
     <string name="unit_ml">мл</string>
     <string name="unit_g">г</string>
@@ -38,7 +38,7 @@
     <string name="select_dish">Оберіть страву</string>
     <string name="product_name">Назва продукту</string>
     <string name="servings">Кількість порцій на двох</string>
-    <string name="amount">Кількість (рідина - мл, тверде - г, шт)</string>
+    <string name="amount">Кількість (мл, г, шт)</string>
     <string name="add_product">Додати продукт</string>
     <string name="recipe_optional">Рецепт (необов\'язково)</string>
     <string name="save_dish">Зберегти страву</string>
@@ -56,4 +56,16 @@
     <string name="please_fill_in_all_product_fields">Будь ласка, заповніть усі поля</string>
     <string name="product_added_successfully">Продукт додано успішно!</string>
     <string name="error_adding_product">Помилка при додаванні продукту: %1$s</string>
+    <string name="new_mandatory_product_added">Новий базовий продукт додано!</string>
+    <string name="not_valid_product_name">Продукт з такою назвою не знайдено!</string>
+    <string name="mandatory_product_removed">Продукт видалено з базових!</string>
+    <string name="grn">%s грн</string>
+    <string name="selected">Обрано: %1$s</string>
+    <string name="selected_range">Обрано: %1$s - %2$s</string>
+    <string name="shopping_list_prod_view">%1$s %2$s    %3$s грн</string>
+    <string name="remove_product">Видалити продукт</string>
+    <string name="mandatory_products">Базові продукти</string>
+    <string name="selected_today">Оберіть дату</string>
+    <string name="show_product_list">Показати список продуктів</string>
+    <string name="dish_name_sandwich">Канапу</string>
 </resources>

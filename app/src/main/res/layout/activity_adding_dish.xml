@@ -14,7 +14,7 @@
             android:id="@+id/mealTypeContainer"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:columnCount="4"
+            android:columnCount="5"
             android:orientation="horizontal"
             android:paddingTop="8dp"
             android:rowCount="1"

@@ -19,7 +19,29 @@ class DishRepository(private val dishDao: DishDao) {
                 ),
                 recipe = "Whisk eggs and milk, fry on a pan."
             ),
-
+            Dish(
+                dishName = "Tuna Sandwich",
+                dishNameUk = "Канапки з тунцем",
+                type = listOf(MealType.SANDWICH),
+                servings = 3,
+                products = listOf(
+                    mapOf("name" to "Egg", "amount" to "2", "unit" to "pcs"),
+                    mapOf("name" to "Bread", "amount" to "50", "unit" to "g"),
+                    mapOf("name" to "Milk", "amount" to "100", "unit" to "ml")
+                ),
+                recipe = "Тунець з яйцем і цибулькою"
+            ),
+            Dish(
+                dishName = "Avocado Sandwich",
+                dishNameUk = "Канапки з авокадо",
+                type = listOf(MealType.SANDWICH),
+                servings = 2,
+                products = listOf(
+                    mapOf("name" to "Avocado", "amount" to "1", "unit" to "pcs"),
+                    mapOf("name" to "Onion", "amount" to "50", "unit" to "g")
+                ),
+                recipe = "Авокадо з лимонним соком і цибулькою"
+            ),
             Dish(
                 dishName = "Salad",
                 dishNameUk = "Салат",
@@ -66,7 +88,7 @@ class DishRepository(private val dishDao: DishDao) {
                 type = listOf(MealType.LUNCH),
                 servings = 4,
                 products = listOf(
-                    mapOf("name" to "Chicken", "amount" to "500", "unit" to "g"),
+                    mapOf("name" to "Chicken Breast", "amount" to "500", "unit" to "g"),
                     mapOf("name" to "Carrot", "amount" to "100", "unit" to "g"),
                     mapOf("name" to "Onion", "amount" to "1", "unit" to "pcs"),
                     mapOf("name" to "Garlic", "amount" to "2", "unit" to "cloves"),
@@ -146,4 +168,7 @@ class DishRepository(private val dishDao: DishDao) {
         return dishDao.getAllDishes()
     }
 
+    suspend fun getDishByName(name: String): Dish? {
+        return dishDao.getDishByName(name)
+    }
 }

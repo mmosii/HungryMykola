@@ -12,6 +12,7 @@ import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,7 +23,7 @@ import stanyliaINC.hungrymykola.database.DishRepository
 import stanyliaINC.hungrymykola.database.ProductRepository
 import stanyliaINC.hungrymykola.model.Dish
 import stanyliaINC.hungrymykola.model.MealType
-import stanyliaINC.hungrymykola.utils.ProductAdapter
+import stanyliaINC.hungrymykola.utils.AddingDishProductAdapter
 import stanyliaINC.hungrymykola.viewmodel.DishViewModel
 import stanyliaINC.hungrymykola.viewmodel.ProductViewModel
 import stanyliaINC.hungrymykola.viewmodel.factory.DishViewModelFactory
@@ -30,21 +31,9 @@ import stanyliaINC.hungrymykola.viewmodel.factory.ProductViewModelFactory
 
 class AddingDishActivity : AppCompatActivity() {
 
-    private val dishViewModel: DishViewModel by viewModels() {
-        DishViewModelFactory(
-            DishRepository(
-                DatabaseProvider.getDatabase(applicationContext).dishDao()
-            )
-        )
-    }
+    private val dishViewModel: DishViewModel by viewModels() { DishViewModelFactory(DishRepository(DatabaseProvider.getDatabase(applicationContext).dishDao())) }
 
-    private val productViewModel: ProductViewModel by viewModels {
-        ProductViewModelFactory(
-            ProductRepository(
-                DatabaseProvider.getDatabase(applicationContext).productDao()
-            )
-        )
-    }
+    private val productViewModel: ProductViewModel by viewModels { ProductViewModelFactory(ProductRepository(DatabaseProvider.getDatabase(applicationContext).productDao())) }
 
     private lateinit var dishNameEditText: EditText
     private lateinit var servingsEditText: EditText
@@ -52,7 +41,7 @@ class AddingDishActivity : AppCompatActivity() {
     private lateinit var productAmountEditText: EditText
     private lateinit var recipeEditText: EditText
     private lateinit var productRecyclerView: RecyclerView
-    private lateinit var productAdapter: ProductAdapter
+    private lateinit var addingDishProductAdapter: AddingDishProductAdapter
     private lateinit var mealTypeContainer: GridLayout
     private val selectedMealTypes = mutableListOf<MealType>()
     private val productList = mutableListOf<Map<String, String>>()
@@ -72,8 +61,8 @@ class AddingDishActivity : AppCompatActivity() {
         productRecyclerView = findViewById(R.id.productRecyclerView)
 
         productRecyclerView.layoutManager = LinearLayoutManager(this)
-        productAdapter = ProductAdapter(productList) { position -> removeProduct(position) }
-        productRecyclerView.adapter = productAdapter
+        addingDishProductAdapter = AddingDishProductAdapter(productList) { position -> removeProduct(position) }
+        productRecyclerView.adapter = addingDishProductAdapter
 
         addMealTypeBoxes()
 
@@ -98,7 +87,6 @@ class AddingDishActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-
         lifecycleScope.launch {
             val products = productViewModel.getAllProducts()
             val productNames =
@@ -155,17 +143,19 @@ class AddingDishActivity : AppCompatActivity() {
 
     private fun toggleMealTypeSelection(
         mealType: MealType,
-        box: TextView,
+        selectedBox: TextView,
         greyBackground: Drawable?,
         greenBackground: Drawable?
     ) {
-        if (selectedMealTypes.contains(mealType)) {
-            selectedMealTypes.remove(mealType)
-            box.background = greyBackground
-        } else {
-            selectedMealTypes.add(mealType)
-            box.background = greenBackground
+        selectedMealTypes.clear()
+        mealTypeContainer.children.forEach { view ->
+            if (view is TextView) {
+                view.background = greyBackground
+            }
         }
+
+        selectedMealTypes.add(mealType)
+        selectedBox.background = greenBackground
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -190,7 +180,7 @@ class AddingDishActivity : AppCompatActivity() {
                     "unit" to productUnit
                 )
                 productList.add(productMap)
-                productAdapter.notifyDataSetChanged()
+                addingDishProductAdapter.notifyDataSetChanged()
                 productNameAutoCompleteTextView.text.clear()
                 productAmountEditText.text.clear()
             } else {
@@ -206,7 +196,7 @@ class AddingDishActivity : AppCompatActivity() {
     @SuppressLint("NotifyDataSetChanged")
     private fun removeProduct(position: Int) {
         productList.removeAt(position)
-        productAdapter.notifyDataSetChanged()
+        addingDishProductAdapter.notifyDataSetChanged()
     }
 
     private fun saveDish() {

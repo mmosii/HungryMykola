@@ -64,6 +64,41 @@ class MealRepository(private val mealDao: MealDao, private val dishDao: DishDao,
                 insertMeal(breakfastMeal)
             }
 
+            val sandwichMeal: Meal
+            val sandwichDishes =
+                allDishes.filter { dish -> dish.type.contains(MealType.SANDWICH) }
+            val sandwichPreviousMeals = allMeals.filter { meal -> meal.type == MealType.SANDWICH }
+            if (sandwichPreviousMeals.none { meal -> meal.date == date }) {
+                val previousSandwichDishValid =
+                    isPreviousDishValid(sandwichPreviousMeals, sandwichDishes, date)
+                if (previousSandwichDishValid.second && !previousSandwichDishValid.first.isNullOrEmpty()) {
+                    sandwichMeal =
+                        Meal(MealType.SANDWICH, listOf(previousSandwichDishValid.first!!), date)
+                    val sandwichReuseDish =
+                        dishDao.getDishByName(previousSandwichDishValid.first!!)
+                    if (sandwichReuseDish != null) dishDao.update(sandwichReuseDish)
+                } else {
+                    val sortedSandwichDishes = sandwichDishes.sortedBy { dish ->
+                        try {
+                            dateFormat.parse(dish.lastUseDate)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    val sandwichDish = sortedSandwichDishes[0]
+                    val oldUseSandwichDate = sandwichDish.lastUseDate
+                    sandwichDish.lastUseDate = date
+                    sandwichDish.lastUseDateReserve = oldUseSandwichDate
+                    dishDao.update(sandwichDish)
+                    sandwichMeal = Meal(
+                        MealType.SANDWICH,
+                        listOf(sandwichDish.getLocalizedDishName(LocaleManager.getLanguage(context))),
+                        date
+                    )
+                }
+                insertMeal(sandwichMeal)
+            }
+
             val snackMeal: Meal
             val snackDishes = allDishes.filter { dish -> dish.type.contains(MealType.SNACK) }
             val snackPreviousMeals =

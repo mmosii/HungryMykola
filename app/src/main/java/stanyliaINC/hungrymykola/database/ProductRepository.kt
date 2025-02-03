@@ -14,7 +14,7 @@ class ProductRepository(private val productDao: ProductDao) {
 
             Product("Tomato","Помідор",  1000, Units.G, "https://example.com/tomato", 95.0),
             Product("Cucumber", "Огірок", 1000, Units.G, "https://example.com/cucumber", 85.0),
-            Product("Olive oil", "Оливкова олія", 1000, Units.ML, "https://example.com/oliveoil", 500.0),
+            Product("Olive Oil", "Оливкова олія", 1000, Units.ML, "https://example.com/oliveoil", 500.0),
 
             Product("Flour", "Борошно",  1000, Units.G, "https://example.com/flour", 35.0),
             Product("Sugar","Цукор",  500, Units.G, "https://example.com/sugar", 20.0),
@@ -22,7 +22,7 @@ class ProductRepository(private val productDao: ProductDao) {
             Product("Spaghetti", "Спагетті",  1000, Units.G, "https://example.com/spaghetti", 150.0),
             Product("Tomato Sauce", "Томатна паста", 500, Units.ML, "https://example.com/tomatosauce", 75.0),
 
-            Product("Chicken breast", "Куряче філе", 1000, Units.G, "https://example.com/chicken", 120.0),
+            Product("Chicken Breast", "Куряче філе", 1000, Units.G, "https://example.com/chicken", 120.0),
             Product("Carrot", "Морква",  500, Units.G, "https://example.com/carrot", 20.0),
             Product("Onion","Цибуля",  500, Units.G, "https://example.com/onion", 30.0),
             Product("Garlic","Часник",  100, Units.G, "https://example.com/garlic", 10.0),
@@ -42,7 +42,8 @@ class ProductRepository(private val productDao: ProductDao) {
 
             Product("Broccoli", "Брокколі", 500, Units.G, "https://example.com/broccoli", 35.0),
             Product("Bell Pepper", "Перець болгарський", 500, Units.G, "https://example.com/bellpepper", 25.0),
-            Product("Soy Sauce", "Соєвий соус", 500, Units.G, "https://example.com/soysauce", 100.0)
+            Product("Soy Sauce", "Соєвий соус", 500, Units.G, "https://example.com/soysauce", 100.0),
+            Product("Avocado", "Авокадо", 500, Units.G, "https://example.com/soysauce", 100.0)
         )
 
         defaultProducts.forEach { product ->

@@ -1,5 +1,6 @@
 package stanyliaINC.hungrymykola.utils
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,10 +9,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import stanyliaINC.hungrymykola.R
 
-class ProductAdapter(
+class AddingDishProductAdapter(
     private val productList: MutableList<Map<String, String>>,
     private val onDelete: (Int) -> Unit
-) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
+) : RecyclerView.Adapter<AddingDishProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val productNameTextView: TextView = view.findViewById(R.id.productNameTextView)
@@ -25,6 +26,7 @@ class ProductAdapter(
         return ProductViewHolder(view)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val product = productList[position]
         holder.productNameTextView.text = product["name"]
