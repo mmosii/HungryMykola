@@ -6,34 +6,37 @@ import kotlinx.coroutines.withContext
 import stanyliaINC.hungrymykola.dao.DishDao
 import stanyliaINC.hungrymykola.dao.ProductDao
 import stanyliaINC.hungrymykola.database.DatabaseProvider
+import stanyliaINC.hungrymykola.database.DishRepository
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 class PriceUpdateService(context: Context) {
     private val dishDao: DishDao
     private val productDao: ProductDao
+    private val dishRepository: DishRepository
 
     init {
         val database = DatabaseProvider.getDatabase(context)
         dishDao = database.dishDao()
         productDao = database.productDao()
+        dishRepository = DishRepository(dishDao)
     }
 
     suspend fun updateDishPrice(dishName: String): Double? {
         return withContext(Dispatchers.IO) {
             val price = calculateDishPrice(dishName) ?: return@withContext null
             val roundedPrice = BigDecimal(price).setScale(2, RoundingMode.HALF_UP).toDouble()
-            val dish = dishDao.getDishByName(dishName)
+            val dish = dishRepository.getDishByName(dishName)
             dish?.let {
                 val updatedDish = it.copy(price = roundedPrice)
-                dishDao.update(updatedDish)
+                dishRepository.updateDish(updatedDish)
             }
             roundedPrice
         }
     }
 
     private suspend fun calculateDishPrice(dish: String): Double? {
-        val dishByName = dishDao.getDishByName(dish)
+        val dishByName = dishRepository.getDishByName(dish)
         val dishProducts = dishByName?.products
         val products = dishProducts?.map { it["name"] ?: "" }?.map { name ->
             productDao.getByName(name)

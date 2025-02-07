@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import stanyliaINC.hungrymykola.R
 import stanyliaINC.hungrymykola.service.PriceUpdateService
+import stanyliaINC.hungrymykola.utils.LocaleManager
 
 
 class DishDetailsActivity : AppCompatActivity() {

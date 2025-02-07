@@ -8,7 +8,6 @@ class ProductViewModel(private val productRepository: ProductRepository) : ViewM
 
     suspend fun addProduct(product: Product) {
                 productRepository.insertProduct(product)
-
     }
 
     suspend fun getAllProducts(): List<Product> {

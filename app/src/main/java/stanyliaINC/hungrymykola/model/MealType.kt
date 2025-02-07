@@ -19,9 +19,4 @@ enum class MealType {
             SNACK -> context.getString(R.string.dish_name_snack)
         }
     }
-    companion object {
-        fun fromLocalizedName(context: Context, localizedName: String): MealType? {
-            return entries.find { it.getLocalizedDishName(context) == localizedName }
-        }
-    }
 }

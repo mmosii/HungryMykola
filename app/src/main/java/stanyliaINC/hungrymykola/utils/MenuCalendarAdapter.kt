@@ -32,6 +32,7 @@ class MenuCalendarAdapter(
     private val dayOfWeekFormat = SimpleDateFormat("E", LocaleManager.getLanguage(context)?.let { Locale(it) } ?: Locale.getDefault())
 
     private var selectedDate: Date? = null
+    private var selectedPosition: Int? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_day, parent, false)
@@ -57,27 +58,27 @@ class MenuCalendarAdapter(
             lifecycleOwner.lifecycleScope.launch {
                 val mealsByDate = mealDao.getMealsByDate(dateString)
 
-                if (mealsByDate.isEmpty()) {
-                    itemView.isVisible = false
-                } else {
-                    itemView.setBackgroundColor(Color.TRANSPARENT)
-                    itemView.isVisible = true
-                }
+                itemView.isVisible = mealsByDate.isNotEmpty()
 
+                val isSelected = selectedDate == date
+                val colorFrom = (itemView.background as? ColorDrawable)?.color ?: Color.TRANSPARENT
+                val colorTo = if (isSelected) Color.GREEN else Color.TRANSPARENT
 
-                if (selectedDate == date && mealsByDate.isNotEmpty()) {
-                    val colorFrom = (itemView.background as? ColorDrawable)?.color ?: Color.TRANSPARENT
-                    val colorTo = if (selectedDate == date) Color.GREEN else Color.TRANSPARENT
-                    ObjectAnimator.ofObject(itemView, "backgroundColor", ArgbEvaluator(), colorFrom, colorTo).setDuration(300).start()
-
-                }
+                ObjectAnimator.ofObject(itemView, "backgroundColor", ArgbEvaluator(), colorFrom, colorTo)
+                    .setDuration(300)
+                    .start()
             }
 
             dateTextView.text = "$dateText\n$dayOfWeekText"
 
             itemView.setOnClickListener {
+                val previousPosition = selectedPosition
                 selectedDate = date
-                notifyDataSetChanged()
+                selectedPosition = position
+
+                previousPosition?.let { notifyItemChanged(it) }
+                notifyItemChanged(position)
+
                 onDayClick(date)
             }
         }

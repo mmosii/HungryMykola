@@ -6,7 +6,6 @@ import com.google.gson.reflect.TypeToken
 import stanyliaINC.hungrymykola.model.MealType
 
 class Converters {
-
     private val gson = Gson()
 
     @TypeConverter
@@ -37,8 +36,10 @@ class Converters {
     }
 
     @TypeConverter
-    fun toList(json: String): List<String> {
-        val type = object : TypeToken<List<String>>() {}.type
-        return gson.fromJson(json, type) ?: emptyList()
+    fun toList(json: String?): List<String> {
+        return json?.let {
+            val type = object : TypeToken<List<String>>() {}.type
+            gson.fromJson<List<String>>(it, type) ?: emptyList()
+        } ?: emptyList()
     }
 }

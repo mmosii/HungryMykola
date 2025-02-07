@@ -30,6 +30,7 @@ class ShoppingListCalendarAdapter(
         return CalendarViewHolder(view)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onBindViewHolder(holder: CalendarViewHolder, position: Int) {
         val date = days[position]
         holder.bind(date)

@@ -1,3 +1,5 @@
+package stanyliaINC.hungrymykola.utils
+
 import android.content.Context
 import android.content.SharedPreferences
 import java.util.*

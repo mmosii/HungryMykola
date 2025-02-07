@@ -24,6 +24,9 @@ interface MealDao {
     @Query("SELECT * FROM meals WHERE date = :date")
     suspend fun getMealsByDate(date: String): List<Meal>
 
+    @Query("SELECT * FROM meals WHERE date >= :date ORDER BY date ASC")
+    suspend fun getMealsFromDate(date: String): List<Meal>
+
     @Query("SELECT * FROM meals")
     suspend fun getAllMeals(): List<Meal>
 
@@ -35,5 +38,4 @@ interface MealDao {
 
     @Query("DELETE FROM meals WHERE date > :date AND type = :type")
     suspend fun removeMealsByTypeAndDateGreaterThan(date: String, type: String)
-
 }

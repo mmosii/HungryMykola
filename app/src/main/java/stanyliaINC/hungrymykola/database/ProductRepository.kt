@@ -1,66 +1,29 @@
 package stanyliaINC.hungrymykola.database
 
+import android.content.Context
 import android.util.Log
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.GenericTypeIndicator
+import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import stanyliaINC.hungrymykola.dao.ProductDao
 import stanyliaINC.hungrymykola.model.Product
-import stanyliaINC.hungrymykola.model.Units
 
 class ProductRepository(private val productDao: ProductDao) {
 
-    suspend fun insertDefaultProducts() {
-        val defaultProducts = listOf(
-            Product("Egg", "Яйце", 10, Units.PCS, "https://example.com/eggs", 60.0),
-            Product("Milk","Молоко",  900, Units.ML, "https://example.com/milk", 44.0),
+    private val productsFirebaseReference =
+        FirebaseDatabase.getInstance("")
+            .getReference("products")
+    private val mandatoryProductsFirebaseReference =
+        FirebaseDatabase.getInstance("")
+            .getReference("mandatoryProducts")
 
-            Product("Tomato","Помідор",  1000, Units.G, "https://example.com/tomato", 95.0),
-            Product("Cucumber", "Огірок", 1000, Units.G, "https://example.com/cucumber", 85.0),
-            Product("Olive Oil", "Оливкова олія", 1000, Units.ML, "https://example.com/oliveoil", 500.0),
-
-            Product("Flour", "Борошно",  1000, Units.G, "https://example.com/flour", 35.0),
-            Product("Sugar","Цукор",  500, Units.G, "https://example.com/sugar", 20.0),
-
-            Product("Spaghetti", "Спагетті",  1000, Units.G, "https://example.com/spaghetti", 150.0),
-            Product("Tomato Sauce", "Томатна паста", 500, Units.ML, "https://example.com/tomatosauce", 75.0),
-
-            Product("Chicken Breast", "Куряче філе", 1000, Units.G, "https://example.com/chicken", 120.0),
-            Product("Carrot", "Морква",  500, Units.G, "https://example.com/carrot", 20.0),
-            Product("Onion","Цибуля",  500, Units.G, "https://example.com/onion", 30.0),
-            Product("Garlic","Часник",  100, Units.G, "https://example.com/garlic", 10.0),
-            Product("Water", "Вода", 1000, Units.ML, "https://example.com/water", 0.0),
-
-            Product("Bread", "Хліб", 400, Units.G, "https://example.com/bread", 0.8),
-            Product("Cheese", "Сир", 200, Units.G, "https://example.com/cheese", 100.0),
-            Product("Butter", "Масло", 200, Units.G, "https://example.com/butter", 70.0),
-
-            Product("Beef", "Яловичина", 500, Units.G, "https://example.com/beef", 300.0),
-            Product("Salt", "Сіль", 200, Units.G, "https://example.com/salt", 10.0),
-            Product("Pepper", "Перець", 100, Units.G, "https://example.com/pepper", 20.0),
-
-            Product("Apple", "Яблуко", 1000, Units.G, "https://example.com/apple", 50.0),
-            Product("Banana", "Банан", 1000, Units.G, "https://example.com/banana", 40.0),
-            Product("Orange", "Апельсин", 1000, Units.G, "https://example.com/orange", 60.0),
-
-            Product("Broccoli", "Брокколі", 500, Units.G, "https://example.com/broccoli", 35.0),
-            Product("Bell Pepper", "Перець болгарський", 500, Units.G, "https://example.com/bellpepper", 25.0),
-            Product("Soy Sauce", "Соєвий соус", 500, Units.G, "https://example.com/soysauce", 100.0),
-            Product("Avocado", "Авокадо", 500, Units.G, "https://example.com/soysauce", 100.0)
-        )
-
-        defaultProducts.forEach { product ->
-            runCatching {
-                productDao.insert(product)
-            }.onFailure { e ->
-                Log.e("DB_ERROR", "Error inserting: $product", e)
-            }
-        }
-    }
-
-    suspend fun insertProduct(product: Product) {
-        try {
-            productDao.insert(product)
-        } catch (e: Exception) {
-            Log.e("insert: ", "Error inserting: $product", e)
-        }
+    companion object {
+        private const val TAG = "ProductRepository"
     }
 
     suspend fun getAllProducts(): List<Product> {
@@ -72,6 +35,95 @@ class ProductRepository(private val productDao: ProductDao) {
     }
 
     suspend fun update(product: Product) {
-        productDao.update(product)
+        insertProduct(product)
+    }
+
+    fun listenForProductUpdates() {
+        productsFirebaseReference.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                snapshot.children.forEach { data ->
+                    val product = data.getValue(Product::class.java)
+                    if (product != null) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            productDao.insert(product)
+                        }
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("listenForProductUpdates", "Database error: ${error.message}")
+            }
+        })
+    }
+
+    suspend fun insertProduct(product: Product) {
+        runCatching {
+            productDao.insert(product)
+            productsFirebaseReference.child(product.name).setValue(product)
+        }.onSuccess {
+            Log.d(TAG, "Successfully inserted $product")
+        }.onFailure {
+            Log.e(TAG, "Error inserting products: product", it)
+        }
+    }
+
+    fun syncAllProductsFromFirebase() {
+        productsFirebaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val productList = mutableListOf<Product>()
+                for (data in snapshot.children) {
+                    val product = data.getValue(Product::class.java)
+                    if (product != null) {
+                        productList.add(product)
+                    }
+                }
+                CoroutineScope(Dispatchers.IO).launch {
+                    productDao.insertAll(productList)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(TAG, "Error syncing products: ${error.message}")
+            }
+        })
+    }
+
+    fun syncMandatoryProductsFromFirebase(context: Context) {
+        mandatoryProductsFirebaseReference.addListenerForSingleValueEvent(object :
+            ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    val savedProductsSet =
+                        snapshot.getValue(object : GenericTypeIndicator<List<String>>() {})
+                            ?: emptyList()
+                    val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                    prefs.edit().putStringSet("mandatoryProducts", savedProductsSet.toSet()).apply()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                println("Error syncing products: ${error.message}")
+            }
+        })
+    }
+
+    fun listenForMandatoryProductUpdates(context: Context) {
+        mandatoryProductsFirebaseReference.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    val updatedProductsSet =
+                        snapshot.getValue(object : GenericTypeIndicator<List<String>>() {})
+                            ?: emptyList()
+                    val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                    prefs.edit().putStringSet("mandatoryProducts", updatedProductsSet.toSet())
+                        .apply()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                println("Error listening for product updates: ${error.message}")
+            }
+        })
     }
 }

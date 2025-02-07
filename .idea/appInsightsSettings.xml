@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="stanyliaINC.hungrymykola" />
+                  <option name="mobileSdkAppId" value="1:324641840179:android:64dee7b64c16b85a795746" />
+                  <option name="projectId" value="hungrymykola" />
+                  <option name="projectNumber" value="324641840179" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

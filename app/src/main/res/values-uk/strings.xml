@@ -1,11 +1,11 @@
 <resources>
-    <string name="app_name">HungryMykola</string>
+    <string name="app_name">Ням-Ням</string>
     <string name="choose_language">Choose language</string>
     <string name="english">English</string>
     <string name="ukrainian">Українська</string>
     <string name="settings">Налаштування</string>
     <string name="change_language">Змінити мову</string>
-    <string name="welcome_text">Welcome to HungryMykola!</string>
+    <string name="welcome_text">Welcome to Ням-Ням!</string>
     <string name="section_1">Меню</string>
     <string name="section_2">Список продуктів</string>
     <string name="section_3">Додати нову страву</string>
@@ -68,4 +68,8 @@
     <string name="selected_today">Оберіть дату</string>
     <string name="show_product_list">Показати список продуктів</string>
     <string name="dish_name_sandwich">Канапу</string>
+    <string name="share_menu">Поділитись меню</string>
+    <string name="receive_menu">Отримати меню</string>
+    <string name="please_enter_a_valid_dish_name">Введіть коректну назву страви</string>
+    <string name="_2f">%.2f</string>
 </resources>

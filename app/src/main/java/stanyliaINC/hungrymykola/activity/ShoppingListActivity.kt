@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import stanyliaINC.hungrymykola.R
 import stanyliaINC.hungrymykola.databinding.ActivityShoppingListBinding
+import stanyliaINC.hungrymykola.utils.LocaleManager
 import stanyliaINC.hungrymykola.utils.ShoppingListCalendarAdapter
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

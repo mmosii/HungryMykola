@@ -51,6 +51,7 @@
             android:id="@+id/addProductButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:backgroundTint="@color/blue"
             android:text="@string/add_product" />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -70,6 +71,7 @@
         <Button
             android:id="@+id/saveButton"
             android:layout_width="match_parent"
+            android:backgroundTint="@color/blue"
             android:layout_height="wrap_content"
             android:text="@string/save_dish" />
 
@@ -77,6 +79,7 @@
             android:id="@+id/addNewProductButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:backgroundTint="@color/blue"
             android:text="@string/add_new_product" />
 
     </LinearLayout>

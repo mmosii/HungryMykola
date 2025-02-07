@@ -7,6 +7,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import stanyliaINC.hungrymykola.databinding.ActivitySettingsBinding
+import stanyliaINC.hungrymykola.utils.LocaleManager
 
 class SettingsActivity : AppCompatActivity() {
 

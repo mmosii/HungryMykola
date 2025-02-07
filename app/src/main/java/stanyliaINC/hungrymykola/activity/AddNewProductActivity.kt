@@ -13,6 +13,7 @@ import stanyliaINC.hungrymykola.database.DatabaseProvider
 import stanyliaINC.hungrymykola.database.ProductRepository
 import stanyliaINC.hungrymykola.model.Product
 import stanyliaINC.hungrymykola.model.Units
+import stanyliaINC.hungrymykola.utils.LocaleManager
 import stanyliaINC.hungrymykola.viewmodel.ProductViewModel
 import stanyliaINC.hungrymykola.viewmodel.factory.ProductViewModelFactory
 
@@ -57,7 +58,8 @@ class AddNewProductActivity : AppCompatActivity() {
         val url = productUrlEditText.text.toString()
 
         if (name.isEmpty() || amount == null || unit.isEmpty()) {
-            Toast.makeText(this, R.string.please_fill_in_all_product_fields, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.please_fill_in_all_product_fields, Toast.LENGTH_SHORT)
+                .show()
             return
         }
 

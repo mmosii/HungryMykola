@@ -1,6 +1,7 @@
 package stanyliaINC.hungrymykola.activity
 
-import LocaleManager
+import stanyliaINC.hungrymykola.utils.LocaleManager
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -59,6 +60,7 @@ class ProductListActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onResume() {
         super.onResume()
         val startDate = intent.getStringExtra("startDate") ?: ""
@@ -66,9 +68,11 @@ class ProductListActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             loadProducts(startDate, endDate)
+            adapter.notifyDataSetChanged()
         }
     }
 
+    @SuppressLint("DefaultLocale")
     private suspend fun loadProducts(start: String, end: String) {
         productList = getProductsForDateRange(start, end)
 
@@ -76,8 +80,11 @@ class ProductListActivity : AppCompatActivity() {
         val savedProductsSet = prefs.getStringSet("mandatoryProducts", emptySet()) ?: emptySet()
         val flattenedProductNamesSet = savedProductsSet.map { name -> name.split("|") }.flatten()
 
+
         val filteredProductsWithPrices = productList.filter { prod ->
-            !flattenedProductNamesSet.contains(prod.first.name) && !flattenedProductNamesSet.contains(prod.first.nameUk)
+            !flattenedProductNamesSet.contains(prod.first.name) && !flattenedProductNamesSet.contains(
+                prod.first.nameUk
+            )
         }
 
         adapter = ShoppingListProductAdapter(this@ProductListActivity, filteredProductsWithPrices)
@@ -85,11 +92,14 @@ class ProductListActivity : AppCompatActivity() {
         binding.productRecyclerView.adapter = adapter
 
         binding.generalPriceContainer.text = this@ProductListActivity.getString(R.string.grn,
-            filteredProductsWithPrices.sumOf { pair -> pair.second }.toString())
+            String.format("%.2f", filteredProductsWithPrices.sumOf { pair -> pair.second })
+        )
     }
 
-
-    private suspend fun getProductsForDateRange(start: String, end: String): List<Pair<Product, Double>> {
+    private suspend fun getProductsForDateRange(
+        start: String,
+        end: String
+    ): List<Pair<Product, Double>> {
 
         return withContext(Dispatchers.IO) {
             val allMeals = mutableSetOf<List<Meal>>()
@@ -106,21 +116,17 @@ class ProductListActivity : AppCompatActivity() {
                 }
             }
 
-
             val summedProductAmounts = allDishes.flatMap { dish ->
                 dish.products.map { product ->
-                    productRepository.getByName(product["name"]!!).first() to (product["amount"]?.toIntOrNull() ?: 0)
+                    productRepository.getByName(product["name"]!!)
+                        .first() to (product["amount"]?.toIntOrNull() ?: 0)
                 }
             }.groupBy({ it.first }, { it.second })
                 .mapValues { entry -> entry.value.sum() }
 
             summedProductAmounts.map { entry ->
                 val result = entry.value.toFloat() / entry.key.amount.toFloat()
-                val updatedPrice = if (result < 1) {
-                    entry.key.price
-                } else {
-                    entry.key.price * kotlin.math.ceil(result).toInt()
-                }
+                val updatedPrice = entry.key.price * result
                 entry.key to updatedPrice
             }
         }

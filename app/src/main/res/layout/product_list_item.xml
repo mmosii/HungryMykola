@@ -28,7 +28,7 @@
         android:id="@+id/deleteProductButton"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:src="@android:drawable/ic_menu_delete"
+        android:src="@drawable/delete_icon"
         android:background="?attr/selectableItemBackground"
         android:padding="8dp"
         android:contentDescription="Delete" />

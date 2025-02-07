@@ -6,28 +6,21 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "dishes")
 data class Dish(
     @PrimaryKey
-    var dishName: String,
+    var dishName: String = "",
     var dishNameUk: String = "",
-    val type: List<MealType>,
-    val servings: Int,
-    var products: List<Map<String, String>>,
+    val type: List<MealType> = emptyList(),
+    val servings: Int = 0,
+    var products: List<Map<String, String>> = emptyList(),
     val recipe: String = "",
     val price: Double = 0.0,
-    var lastUseDate: String = "01.01.1970",
-    var lastUseDateReserve: String = "01.01.1970") {
-
+    var useDates: List<String> = listOf("01.01.1970")
+) {
+    constructor() : this("", "", emptyList(), 0, emptyList(), "", 0.0, listOf("01.01.1970"))
 
     fun getLocalizedDishName(language: String?): String {
         return when (language) {
             "uk" -> dishNameUk
             else -> dishName
-        }
-    }
-
-    fun setLocalizedDishName(language: String?, name: String) {
-        when(language) {
-            "uk" -> this.dishNameUk = name
-            else -> this.dishName = name
         }
     }
 }

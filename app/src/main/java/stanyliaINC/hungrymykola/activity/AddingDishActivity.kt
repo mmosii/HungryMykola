@@ -1,6 +1,6 @@
 package stanyliaINC.hungrymykola.activity
 
-import LocaleManager
+import stanyliaINC.hungrymykola.utils.LocaleManager
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
@@ -31,9 +31,13 @@ import stanyliaINC.hungrymykola.viewmodel.factory.ProductViewModelFactory
 
 class AddingDishActivity : AppCompatActivity() {
 
-    private val dishViewModel: DishViewModel by viewModels() { DishViewModelFactory(DishRepository(DatabaseProvider.getDatabase(applicationContext).dishDao())) }
+    private val dishViewModel: DishViewModel by viewModels() {
+        DishViewModelFactory(DishRepository(DatabaseProvider.getDatabase(applicationContext).dishDao()))
+    }
 
-    private val productViewModel: ProductViewModel by viewModels { ProductViewModelFactory(ProductRepository(DatabaseProvider.getDatabase(applicationContext).productDao())) }
+    private val productViewModel: ProductViewModel by viewModels {
+        ProductViewModelFactory(ProductRepository(DatabaseProvider.getDatabase(applicationContext).productDao()))
+    }
 
     private lateinit var dishNameEditText: EditText
     private lateinit var servingsEditText: EditText
@@ -61,7 +65,8 @@ class AddingDishActivity : AppCompatActivity() {
         productRecyclerView = findViewById(R.id.productRecyclerView)
 
         productRecyclerView.layoutManager = LinearLayoutManager(this)
-        addingDishProductAdapter = AddingDishProductAdapter(productList) { position -> removeProduct(position) }
+        addingDishProductAdapter =
+            AddingDishProductAdapter(productList) { position -> removeProduct(position) }
         productRecyclerView.adapter = addingDishProductAdapter
 
         addMealTypeBoxes()
@@ -164,8 +169,10 @@ class AddingDishActivity : AppCompatActivity() {
         val productAmount = productAmountEditText.text.toString().toIntOrNull()
 
         if (productName.isEmpty() || productAmount == null) {
-            Toast.makeText(this,
-                getString(R.string.please_fill_in_all_product_fields), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                getString(R.string.please_fill_in_all_product_fields), Toast.LENGTH_SHORT
+            ).show()
             return
         }
 
@@ -200,19 +207,15 @@ class AddingDishActivity : AppCompatActivity() {
     }
 
     private fun saveDish() {
-        var dishName = ""
-        var dishNameUk = ""
-        if (LocaleManager.getLanguage(this) == "uk") {
-            dishNameUk = dishNameEditText.text.toString()
-        } else {
-            dishName = dishNameEditText.text.toString()
-        }
+        val dishNameUk = dishNameEditText.text.toString()
+        val dishName = dishNameEditText.text.toString()
         val servings = servingsEditText.text.toString().toIntOrNull()
         val type = selectedMealTypes
         val recipe = recipeEditText.text.toString()
 
-        if ((dishName.isEmpty() && dishNameUk.isEmpty()) || servings == null || productList.isEmpty()) {
-            Toast.makeText(this, getString(R.string.please_fill_in_all_fields), Toast.LENGTH_SHORT).show()
+        if ((dishName.isEmpty() && dishNameUk.isEmpty()) || servings == null || productList.isEmpty() || type.isEmpty() ) {
+            Toast.makeText(this, getString(R.string.please_fill_in_all_fields), Toast.LENGTH_SHORT)
+                .show()
             return
         }
 

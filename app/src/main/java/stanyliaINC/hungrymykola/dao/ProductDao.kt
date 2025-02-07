@@ -3,14 +3,19 @@ package stanyliaINC.hungrymykola.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import stanyliaINC.hungrymykola.model.Product
 
 @Dao
 interface ProductDao {
-    @Insert
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(product: Product)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(products: List<Product>)
 
     @Query("SELECT * FROM products")
     suspend fun getAllProducts(): List<Product>

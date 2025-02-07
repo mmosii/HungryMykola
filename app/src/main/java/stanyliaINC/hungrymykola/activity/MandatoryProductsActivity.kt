@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.launch
 import stanyliaINC.hungrymykola.R
 import stanyliaINC.hungrymykola.dao.ProductDao
@@ -16,6 +17,7 @@ import stanyliaINC.hungrymykola.database.DatabaseProvider
 import stanyliaINC.hungrymykola.database.ProductRepository
 import stanyliaINC.hungrymykola.databinding.ActivityMandatoryProductsBinding
 import stanyliaINC.hungrymykola.model.Product
+import stanyliaINC.hungrymykola.utils.LocaleManager
 import stanyliaINC.hungrymykola.utils.MandatoryProductAdapter
 
 class MandatoryProductsActivity : AppCompatActivity() {
@@ -25,6 +27,10 @@ class MandatoryProductsActivity : AppCompatActivity() {
     private lateinit var productRepository: ProductRepository
     private lateinit var productNameAutoCompleteTextView: AutoCompleteTextView
     private var mandatoryProducts = mutableListOf<Product>()
+
+    private val firebaseDb =
+        FirebaseDatabase.getInstance("")
+            .getReference("mandatoryProducts")
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,45 +64,76 @@ class MandatoryProductsActivity : AppCompatActivity() {
 
             adapter = MandatoryProductAdapter(this@MandatoryProductsActivity, mandatoryProducts)
 
-            binding.mandatoryProductRecyclerView.layoutManager = LinearLayoutManager(this@MandatoryProductsActivity)
+            binding.mandatoryProductRecyclerView.layoutManager =
+                LinearLayoutManager(this@MandatoryProductsActivity)
             binding.mandatoryProductRecyclerView.adapter = adapter
-
             binding.plusButton.setOnClickListener {
-                val text = productNameAutoCompleteTextView.text.toString()
-                if (text.isNotEmpty()) {
+                val text = productNameAutoCompleteTextView.text
+                if (!text.isNullOrEmpty()) {
                     lifecycleScope.launch {
-                        val productToAdd = productRepository.getByName(text).first()
-                        if (!mandatoryProducts.contains(productToAdd)) {
-                            mandatoryProducts.add(productToAdd)
+                        val productToAdd = productRepository.getByName(text.toString())
+                        if (productToAdd.isNotEmpty() && !mandatoryProducts.contains(productToAdd.first())) {
+                            mandatoryProducts.add(productToAdd.first())
                             adapter.notifyDataSetChanged()
-                            Toast.makeText(this@MandatoryProductsActivity,
-                                getString(R.string.new_mandatory_product_added), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this@MandatoryProductsActivity,
+                                getString(R.string.new_mandatory_product_added), Toast.LENGTH_SHORT
+                            ).show()
                             productNameAutoCompleteTextView.text.clear()
-                            prefs.edit().putStringSet("mandatoryProducts", mandatoryProducts.map { product ->  "${product.name}|${product.nameUk}" }.toSet()).apply()
+                            val mandatoryProductsNames =
+                                mandatoryProducts.map { product -> "${product.name}|${product.nameUk}" }
+                            prefs.edit()
+                                .putStringSet("mandatoryProducts", mandatoryProductsNames.toSet())
+                                .apply()
+                            firebaseDb.setValue(mandatoryProductsNames.toList())
+                        } else {
+                            Toast.makeText(
+                                this@MandatoryProductsActivity,
+                                getString(R.string.not_valid_product_name), Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 } else {
-                    Toast.makeText(this@MandatoryProductsActivity,
-                        getString(R.string.not_valid_product_name), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@MandatoryProductsActivity,
+                        getString(R.string.not_valid_product_name), Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
 
             binding.minusButton.setOnClickListener {
-                val text = productNameAutoCompleteTextView.text.toString()
+                val text = productNameAutoCompleteTextView.text
                 if (text.isNotEmpty()) {
                     lifecycleScope.launch {
-                        val productToAdd = productRepository.getByName(text).first()
-                        if (mandatoryProducts.contains(productToAdd)) {
-                            mandatoryProducts.remove(productToAdd)
+                        val productToAdd = productRepository.getByName(text.toString())
+                        if (productToAdd.isNotEmpty() && mandatoryProducts.contains(productToAdd.first())) {
+                            mandatoryProducts.remove(productToAdd.first())
                             adapter.notifyDataSetChanged()
-                            Toast.makeText(this@MandatoryProductsActivity,
-                                getString(R.string.mandatory_product_removed), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this@MandatoryProductsActivity,
+                                getString(R.string.mandatory_product_removed), Toast.LENGTH_SHORT
+                            ).show()
                             productNameAutoCompleteTextView.text.clear()
-                            prefs.edit().putStringSet("mandatoryProducts", mandatoryProducts.map { product ->  "${product.name}|${product.nameUk}" }.toSet()).apply()
+                            val mandatoryProductsNames =
+                                mandatoryProducts.map { product -> "${product.name}|${product.nameUk}" }
+                            prefs.edit()
+                                .putStringSet("mandatoryProducts", mandatoryProductsNames.toSet())
+                                .apply()
+                            firebaseDb.setValue(mandatoryProductsNames.toList())
+                        } else {
+                            Toast.makeText(
+                                this@MandatoryProductsActivity,
+                                getString(R.string.not_valid_product_name),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 } else {
-                    Toast.makeText(this@MandatoryProductsActivity, getString(R.string.not_valid_product_name), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@MandatoryProductsActivity,
+                        getString(R.string.not_valid_product_name),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
 

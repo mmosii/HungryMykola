@@ -1,14 +1,13 @@
 package stanyliaINC.hungrymykola.activity
 
-import LocaleManager
+import stanyliaINC.hungrymykola.utils.LocaleManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -25,6 +24,7 @@ import stanyliaINC.hungrymykola.dao.DishDao
 import stanyliaINC.hungrymykola.dao.MealDao
 import stanyliaINC.hungrymykola.dao.ProductDao
 import stanyliaINC.hungrymykola.database.DatabaseProvider
+import stanyliaINC.hungrymykola.database.DishRepository
 import stanyliaINC.hungrymykola.database.MealRepository
 import stanyliaINC.hungrymykola.database.ProductRepository
 import stanyliaINC.hungrymykola.databinding.ActivityMenuBinding
@@ -34,7 +34,10 @@ import stanyliaINC.hungrymykola.model.Product
 import stanyliaINC.hungrymykola.utils.MenuCalendarAdapter
 import stanyliaINC.hungrymykola.viewmodel.MealViewModel
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
+import javax.net.ssl.SSLHandshakeException
 
 class MenuActivity : AppCompatActivity() {
 
@@ -47,6 +50,7 @@ class MenuActivity : AppCompatActivity() {
     private lateinit var mealRepository: MealRepository
     private lateinit var mealViewModel: MealViewModel
     private lateinit var productRepository: ProductRepository
+    private lateinit var dishRepository: DishRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +60,7 @@ class MenuActivity : AppCompatActivity() {
         dishDao = database.dishDao()
         productDao = database.productDao()
         mealDao = database.mealDao()
+        dishRepository = DishRepository(dishDao)
         mealRepository = MealRepository(mealDao, dishDao, this@MenuActivity)
         productRepository = ProductRepository(productDao)
 
@@ -64,11 +69,8 @@ class MenuActivity : AppCompatActivity() {
         binding = ActivityMenuBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        updateMealsForPeriod()
         updateCalendarView()
-
-        binding.updateMealsButton.setOnClickListener {
-            updateMealsForPeriod()
-        }
     }
 
     private fun updateCalendarView() {
@@ -99,7 +101,6 @@ class MenuActivity : AppCompatActivity() {
             val lunchMeal = mealsByDate.first { meal -> meal.type == MealType.LUNCH }
             val snackMeal = mealsByDate.first { meal -> meal.type == MealType.SNACK }
             val dinnerMeal = mealsByDate.first { meal -> meal.type == MealType.DINNER }
-
 
             if (breakfastMeal.dishes.first() == "Dummy") {
                 binding.tvBreakfastDish.text = breakfastMeal.dishes[1]
@@ -154,8 +155,6 @@ class MenuActivity : AppCompatActivity() {
             } else {
                 binding.tvDinnerDish.text = dinnerMeal.dishes.first()
             }
-
-            binding.tvDinnerDish.text = dinnerMeal.dishes.first()
             binding.tvDinnerDish.setOnClickListener {
                 lifecycleScope.launch {
                     openDishDetails(binding.tvDinnerDish.text.toString())
@@ -166,6 +165,12 @@ class MenuActivity : AppCompatActivity() {
             binding.btnRemoveBreakfast.setOnClickListener {
                 lifecycleScope.launch {
                     replaceMeal(date, MealType.BREAKFAST, binding.tvBreakfastDish)
+                }
+            }
+
+            binding.btnRemoveSandwich.setOnClickListener {
+                lifecycleScope.launch {
+                    replaceMeal(date, MealType.SANDWICH, binding.tvSandwichDish)
                 }
             }
 
@@ -196,7 +201,6 @@ class MenuActivity : AppCompatActivity() {
             binding.tvLunchDish,
             binding.tvDinnerDish,
             binding.selectedDate,
-            binding.updateMealsButton,
             binding.cardViewSelectedDate,
             binding.cardView,
             binding.btnRemoveBreakfast,
@@ -212,21 +216,72 @@ class MenuActivity : AppCompatActivity() {
         binding.confirmMealButton.visibility = View.VISIBLE
         binding.cancelMealChange.visibility = View.VISIBLE
 
+        lifecycleScope.launch {
+            val allDishes = dishRepository.getAllDishes()
+            val dishNames = allDishes.map { it.dishName } + allDishes.map { it.dishNameUk }
+            val adapter = ArrayAdapter(
+                this@MenuActivity,
+                android.R.layout.simple_dropdown_item_1line,
+                dishNames
+            )
+
+            binding.inputTextField.setAdapter(adapter)
+        }
+
         binding.confirmMealButton.setOnClickListener {
             val newText = binding.inputTextField.text
+
+            if (newText.isNullOrEmpty()) {
+                Toast.makeText(
+                    this@MenuActivity,
+                    getString(R.string.please_enter_a_valid_dish_name),
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
             view.text = newText
-            binding.inputTextField.visibility = View.GONE
-            binding.confirmMealButton.visibility = View.GONE
-            binding.cancelMealChange.visibility = View.GONE
-            views.forEach { it.visibility = View.VISIBLE }
+
             val imm =
                 this@MenuActivity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(binding.inputTextField.windowToken, 0)
-            lifecycleScope.launch {
-                mealDao.deleteMealByDateAndType(date, type.name)
-                mealDao.insert(Meal(type, listOf("Dummy", newText.toString()), date))
-            }
 
+            lifecycleScope.launch {
+                val allMealsFromDate = mealRepository.getMealsFromDate(date)
+                    .filter { it.type == type }
+                val allDishesInAffectedMeals = allMealsFromDate.flatMap { it.dishes }.toSet()
+                allDishesInAffectedMeals.forEach { dishName ->
+                    val dish = dishRepository.getDishByName(dishName)
+                    if (dish != null) {
+                        val updatedUseDates = dish.useDates.toMutableList()
+                        val index = updatedUseDates.indexOfFirst { it >= date }
+                        if (index != -1) {
+                            updatedUseDates.subList(index, updatedUseDates.size)
+                                .clear()
+
+                            dish.useDates = updatedUseDates
+                            dishRepository.insert(dish)
+                        }
+                    }
+                }
+
+                allMealsFromDate.forEach { mealRepository.deleteMeal(it) }
+
+                val fetchedDish = dishRepository.getDishByName(newText.toString())
+                if (fetchedDish != null) {
+                    val newUseDates = fetchedDish.useDates.toMutableList()
+                    newUseDates.add(date)
+                    fetchedDish.useDates = newUseDates
+                    dishRepository.insert(fetchedDish)
+
+                    mealRepository.insertMeal(Meal(type, listOf(newText.toString()), date))
+                } else {
+                    mealRepository.insertMeal(Meal(type, listOf("Dummy", newText.toString()), date))
+                }
+                val intent = Intent(this@MenuActivity, MainActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
         }
         binding.cancelMealChange.setOnClickListener {
             binding.inputTextField.visibility = View.GONE
@@ -311,52 +366,115 @@ class MenuActivity : AppCompatActivity() {
     private fun updateMealsForPeriod() {
         val dates = getDatesForPeriod().sorted()
         val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.getDefault())
-        Toast.makeText(this@MenuActivity, getString(R.string.updating_menu), Toast.LENGTH_SHORT)
-            .show()
         lifecycleScope.launch {
             dates.forEach { date ->
                 val formattedTime = dateFormat.format(date)
                 mealViewModel = MealViewModel(mealRepository)
                 mealViewModel.insertMealsForDate(formattedTime)
-                updatePriceForProducts(productRepository.getAllProducts())
             }
         }
-        Handler(Looper.getMainLooper()).postDelayed({
-            updateCalendarView()
-            Toast.makeText(this@MenuActivity, getString(R.string.menu_updated), Toast.LENGTH_SHORT)
-                .show()
-        }, 4000)
+        lifecycleScope.launch {
+            val allProducts = productRepository.getAllProducts()
+            updatePriceForProducts(allProducts)
+        }
     }
 
     private fun updatePriceForProducts(products: List<Product>) {
-        products.filter{prod -> prod.url.isNullOrEmpty()}.forEach {
-            CoroutineScope(Dispatchers.IO).launch {
-                val client = OkHttpClient()
-                val request = Request.Builder()
-                    .url(it.url!!)
-                    .addHeader(
-                        "User-Agent",
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-                    )
-                    .build()
+        products.filter { prod ->
+            !prod.url.isNullOrEmpty() && LocalDate.parse(prod.priceUpdateDate).isBefore(
+                LocalDate.now().minusDays(7)
+            )
+        }.forEach {
+            if (it.url!!.contains("rukavychka")) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val client = OkHttpClient()
+                    val request = Request.Builder()
+                        .url(it.url!!)
+                        .addHeader(
+                            "User-Agent",
+                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+                        )
+                        .build()
 
-                client.newCall(request).execute().use { response ->
-                    if (response.isSuccessful) {
-                        val html = response.body?.string()
-                        val doc = Jsoup.parse(html!!)
-                        val price = doc.select("meta[property=og:title]").attr("content")
-                            .takeIf { it.contains("ціною від") }?.split("від")?.last()?.trim()
-                        Log.d("a", " $price")
-                        if (price != null) {
-                            it.price = price.toDouble()
+                    try {
+                        val response = client.newCall(request).execute()
+                        if (response.isSuccessful) {
+                            val html = response.body?.string()
+                            val doc = Jsoup.parse(html!!)
+
+                            val priceText = doc.select("span.fm-module-price-new").text()
+                            val result = priceText.replace(Regex("[^0-9.]"), "").removeSuffix(".")
+                            Log.d("Price Extracted", "Price: ${it.nameUk} $result")
+
+                            it.price = if (it.amount == 1000) result.toDouble() * 10 else result.toDouble()
+                            it.priceUpdateDate = LocalDate.now()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                             productRepository.update(it)
+                        } else {
+                            Log.d(
+                                "Price update error",
+                                "Error while updating price for " + it.toString()
+                            )
                         }
-                    } else {
-                        Log.d("Price update error", "Error while updating price for " + it.toString())
+                    } catch (e: SSLHandshakeException) {
+                        Log.e("SSL Error", "SSL handshake failed for ${it.nameUk}: ${e.message}")
+                    } catch (e: Exception) {
+                        Log.e(
+                            "Network Error",
+                            "Error while updating price for ${it.nameUk}: ${e.message}"
+                        )
+                    }
+                }
+            } else {
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val client = OkHttpClient()
+                        val request = Request.Builder()
+                            .url(it.url!!)
+                            .addHeader(
+                                "User-Agent",
+                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+                            )
+                            .build()
+
+                        val response = client.newCall(request).execute()
+
+                        if (response.isSuccessful) {
+                            val html = response.body?.string()
+                            val doc = Jsoup.parse(html!!)
+                            val price = doc.select("meta[property=og:title]").attr("content")
+                                .takeIf { it.contains("ціною від") }?.split("від")?.last()?.trim()
+                            val result = price?.replace(Regex("[^0-9.]"), "")
+
+                            Log.d("Price Extracted", "Price: ${it.nameUk} $result")
+
+                            if (result != null) {
+                                it.price = result.toDouble()
+                                it.priceUpdateDate = LocalDate.now()
+                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                productRepository.update(it)
+                                Log.d(
+                                    "Price Update",
+                                    "Price updated successfully for ${it.nameUk}: $result"
+                                )
+                            } else {
+                                Log.d("Price Update", "Price extraction failed for ${it.nameUk}.")
+                            }
+                        } else {
+                            Log.d(
+                                "Price update error",
+                                "Error while updating price for ${it.nameUk}: ${response.message}"
+                            )
+                        }
+                    } catch (e: Exception) {
+                        Log.e(
+                            "Network Error",
+                            "Error while updating price for ${it.nameUk}: ${e.message}"
+                        )
                     }
                 }
             }
+
         }
     }
 }
-
