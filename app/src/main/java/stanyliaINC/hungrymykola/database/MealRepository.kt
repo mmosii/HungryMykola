@@ -55,7 +55,10 @@ class MealRepository(
                         Meal(MealType.BREAKFAST, listOf(previousBreakfastDishValid.first!!), date)
                     val breakfastReuseDish =
                         dishRepository.getDishByName(previousBreakfastDishValid.first!!)
-                    if (breakfastReuseDish != null) dishRepository.updateDish(breakfastReuseDish)
+                    if (breakfastReuseDish != null) {
+                        breakfastReuseDish.useDates = breakfastReuseDish.useDates.toMutableList().apply{add(date)}
+                        dishRepository.updateDish(breakfastReuseDish)
+                    }
                 } else {
                     val yesterdayMeal =
                         breakfastPreviousMeals.find { meal -> meal.date == getPrevDate(date) }
@@ -63,10 +66,7 @@ class MealRepository(
                     val breakfastDish = getWeightedRandomDish(
                         breakfastDishes, yesterdayDishName, breakfastPreviousMeals
                     )
-                    val useDates = breakfastDish.useDates.toMutableList()
-                    useDates.add(date)
-                    breakfastDish.useDates = useDates
-
+                    breakfastDish.useDates = breakfastDish.useDates.toMutableList().apply{add(date)}
                     dishRepository.updateDish(breakfastDish)
                     breakfastMeal = Meal(
                         MealType.BREAKFAST,
@@ -88,14 +88,15 @@ class MealRepository(
                         Meal(MealType.SANDWICH, listOf(previousSandwichDishValid.first!!), date)
                     val sandwichReuseDish =
                         dishRepository.getDishByName(previousSandwichDishValid.first!!)
-                    if (sandwichReuseDish != null) dishRepository.updateDish(sandwichReuseDish)
+                    if (sandwichReuseDish != null) {
+                        sandwichReuseDish.useDates = sandwichReuseDish.useDates.toMutableList().apply{add(date)}
+                        dishRepository.updateDish(sandwichReuseDish)
+                    }
                 } else {
                     val sortedSandwichDishes =
                         getSortedDishesByEarliestUse(sandwichDishes, dateFormat)
                     val sandwichDish = sortedSandwichDishes[0]
-                    val useDates = sandwichDish.useDates.toMutableList()
-                    useDates.add(date)
-                    sandwichDish.useDates = useDates
+                    sandwichDish.useDates = sandwichDish.useDates.toMutableList().apply{add(date)}
                     dishRepository.updateDish(sandwichDish)
                     sandwichMeal = Meal(
                         MealType.SANDWICH,
@@ -116,13 +117,14 @@ class MealRepository(
                     snackMeal = Meal(MealType.SNACK, listOf(previousSnackDishValid.first!!), date)
                     val snackReuseDish =
                         dishRepository.getDishByName(previousSnackDishValid.first!!)
-                    if (snackReuseDish != null) dishRepository.updateDish(snackReuseDish)
+                    if (snackReuseDish != null) {
+                        snackReuseDish.useDates = snackReuseDish.useDates.toMutableList().apply{add(date)}
+                        dishRepository.updateDish(snackReuseDish)
+                    }
                 } else {
                     val sortedSnackDishes = getSortedDishesByEarliestUse(snackDishes, dateFormat)
                     val snackDish = sortedSnackDishes[0]
-                    val useDates = snackDish.useDates.toMutableList()
-                    useDates.add(date)
-                    snackDish.useDates = useDates
+                    snackDish.useDates = snackDish.useDates.toMutableList().apply{add(date)}
                     dishRepository.updateDish(snackDish)
                     snackMeal = Meal(
                         MealType.SNACK,
@@ -143,13 +145,14 @@ class MealRepository(
                     lunchMeal = Meal(MealType.LUNCH, listOf(previousLunchDishValid.first!!), date)
                     val lunchReuseDish =
                         dishRepository.getDishByName(previousLunchDishValid.first!!)
-                    if (lunchReuseDish != null) dishRepository.updateDish(lunchReuseDish)
+                    if (lunchReuseDish != null) {
+                        lunchReuseDish.useDates = lunchReuseDish.useDates.toMutableList().apply{add(date)}
+                        dishRepository.updateDish(lunchReuseDish)
+                    }
                 } else {
                     val sortedLunchDishes = getSortedDishesByEarliestUse(lunchDishes, dateFormat)
                     val lunchDish = sortedLunchDishes[0]
-                    val useDates = lunchDish.useDates.toMutableList()
-                    useDates.add(date)
-                    lunchDish.useDates = useDates
+                    lunchDish.useDates = lunchDish.useDates.toMutableList().apply{add(date)}
                     dishRepository.updateDish(lunchDish)
                     lunchMeal = Meal(
                         MealType.LUNCH,
@@ -171,13 +174,14 @@ class MealRepository(
                         Meal(MealType.DINNER, listOf(previousDinnerDishValid.first!!), date)
                     val dinnerReuseDish =
                         dishRepository.getDishByName(previousDinnerDishValid.first!!)
-                    if (dinnerReuseDish != null) dishRepository.updateDish(dinnerReuseDish)
+                    if (dinnerReuseDish != null) {
+                        dinnerReuseDish.useDates = dinnerReuseDish.useDates.toMutableList().apply{add(date)}
+                        dishRepository.updateDish(dinnerReuseDish)
+                    }
                 } else {
                     val sortedDinnerDishes = getSortedDishesByEarliestUse(dinnerDishes, dateFormat)
                     val dinnerDish = sortedDinnerDishes[0]
-                    val useDates = dinnerDish.useDates.toMutableList()
-                    useDates.add(date)
-                    dinnerDish.useDates = useDates
+                    dinnerDish.useDates = dinnerDish.useDates.toMutableList().apply{add(date)}
                     dishRepository.updateDish(dinnerDish)
                     dinnerMeal = Meal(
                         MealType.DINNER,
@@ -443,7 +447,7 @@ class MealRepository(
     private fun getSortedDishesByEarliestUse(
         dishes: List<Dish>, dateFormat: SimpleDateFormat
     ): List<Dish> {
-        return dishes.sortedBy { dish ->
+        val sortedDishes = dishes.sortedBy { dish ->
             try {
                 val earliestUseDate = dish.useDates.maxByOrNull { date ->
                     try {
@@ -456,6 +460,30 @@ class MealRepository(
             } catch (e: Exception) {
                 null
             }
+        }
+
+        val earliestUseDate = sortedDishes.firstOrNull()?.useDates?.maxByOrNull { date ->
+            try {
+                dateFormat.parse(date)
+            } catch (e: Exception) {
+                null
+            }!!
+        }
+
+        val dishesWithSameLastUseDate = sortedDishes.filter { dish ->
+            dish.useDates.maxByOrNull { date ->
+                try {
+                    dateFormat.parse(date)
+                } catch (e: Exception) {
+                    null
+                }!!
+            } == earliestUseDate
+        }
+
+        return if (dishesWithSameLastUseDate.isNotEmpty()) {
+            listOf(dishesWithSameLastUseDate.random())
+        } else {
+            emptyList()
         }
     }
 }

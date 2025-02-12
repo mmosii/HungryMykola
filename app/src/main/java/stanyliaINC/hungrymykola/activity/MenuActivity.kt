@@ -247,31 +247,9 @@ class MenuActivity : AppCompatActivity() {
             imm.hideSoftInputFromWindow(binding.inputTextField.windowToken, 0)
 
             lifecycleScope.launch {
-                val allMealsFromDate = mealRepository.getMealsFromDate(date)
-                    .filter { it.type == type }
-                val allDishesInAffectedMeals = allMealsFromDate.flatMap { it.dishes }.toSet()
-                allDishesInAffectedMeals.forEach { dishName ->
-                    val dish = dishRepository.getDishByName(dishName)
-                    if (dish != null) {
-                        val updatedUseDates = dish.useDates.toMutableList()
-                        val index = updatedUseDates.indexOfFirst { it >= date }
-                        if (index != -1) {
-                            updatedUseDates.subList(index, updatedUseDates.size)
-                                .clear()
-
-                            dish.useDates = updatedUseDates
-                            dishRepository.insert(dish)
-                        }
-                    }
-                }
-
-                allMealsFromDate.forEach { mealRepository.deleteMeal(it) }
-
                 val fetchedDish = dishRepository.getDishByName(newText.toString())
                 if (fetchedDish != null) {
-                    val newUseDates = fetchedDish.useDates.toMutableList()
-                    newUseDates.add(date)
-                    fetchedDish.useDates = newUseDates
+                    fetchedDish.useDates = fetchedDish.useDates.toMutableList().apply { add(date) }
                     dishRepository.insert(fetchedDish)
 
                     mealRepository.insertMeal(Meal(type, listOf(newText.toString()), date))
@@ -406,7 +384,8 @@ class MenuActivity : AppCompatActivity() {
                             val result = priceText.replace(Regex("[^0-9.]"), "").removeSuffix(".")
                             Log.d("Price Extracted", "Price: ${it.nameUk} $result")
 
-                            it.price = if (it.amount == 1000) result.toDouble() * 10 else result.toDouble()
+                            it.price =
+                                if (it.amount == 1000) result.toDouble() * 10 else result.toDouble()
                             it.priceUpdateDate = LocalDate.now()
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                             productRepository.update(it)
